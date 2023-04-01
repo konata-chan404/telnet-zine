@@ -7,10 +7,7 @@
 (defn handle-client [socket handler]
   (let [in (BufferedReader. (InputStreamReader. (.getInputStream socket)))
         out (OutputStreamWriter. (.getOutputStream socket))]
-    (while true
-      (let [line (.readLine in)]
-        (when line
-          (handler in out line))))))
+    (handler in out)))
 
 (defn start-server [port handler]
   (let [server (ServerSocket. port)]
