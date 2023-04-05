@@ -15,7 +15,7 @@ impl<H: TelnetHandler + Send + Sync + 'static + Clone> TelnetServer<H> {
         Ok(TelnetServer { listener, handler })
     }
 
-    pub async fn run(mut self) -> Result<()> {
+    pub async fn run(self) -> Result<()> {
         println!("Listening on: {}", self.listener.local_addr()?);
 
         loop {

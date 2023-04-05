@@ -1,0 +1,15 @@
+{
+    "hello_message": "hello.txt",
+    "sections": [
+        {
+            "title": "Example 1",
+            "author": "Alice",
+            "directory": "example1"
+        },
+        {
+            "title": "Example 2",
+            "author": "Bob",
+            "directory": "example2"
+        }
+    ]
+}
