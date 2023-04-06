@@ -58,7 +58,7 @@ impl<H: TelnetHandler + Send + Sync> TelnetSession<H> {
 }
 
 pub trait TelnetHandler: Send + Sync + 'static {
-    fn handle(&self, input: &str) -> String;
+    fn handle(&mut self, input: &str) -> String;
 }
 
 
@@ -72,7 +72,7 @@ impl EchoHandler {
 }
 
 impl TelnetHandler for EchoHandler {
-    fn handle(&self, input: &str) -> String {
+    fn handle(&mut self, input: &str) -> String {
         input.to_string() + "\r\n"
     }
 }
@@ -87,7 +87,7 @@ impl ReverseHandler {
 }
 
 impl TelnetHandler for ReverseHandler {
-    fn handle(&self, input: &str) -> String {
+    fn handle(&mut self, input: &str) -> String {
         input.chars().rev().collect::<String>() + "\r\n"
     }
 }

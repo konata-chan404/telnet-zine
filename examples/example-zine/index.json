@@ -1,5 +1,6 @@
 {
-    "hello_message": "hello.txt",
+    "cover": "cover.txt",
+    "front": "front.txt",
     "sections": [
         {
             "title": "Example 1",

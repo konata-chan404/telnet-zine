@@ -1,13 +1,16 @@
 use serde::{Deserialize, Serialize};
-use std::fs::{self, DirEntry};
-use std::path::{Path, PathBuf};
+use std::fs::{self};
+use std::path::{Path};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Magazine {
-    pub hello_message: String,
+    pub cover: String,
+    pub front: String,
     pub sections: Vec<Section>,
     #[serde(skip)]
-    pub hello: String
+    pub cover_text: String,
+    #[serde(skip)]
+    pub front_text: String
 }
 
 impl Magazine {
@@ -34,8 +37,10 @@ impl Magazine {
             })
             .collect();
         
-        magazine.hello = fs::read_to_string(directory.join(&magazine.hello_message))
-                            .unwrap_or_else(|_| panic!("Failed to read hello file {:?}", magazine.hello_message));
+        magazine.cover_text = fs::read_to_string(directory.join(&magazine.cover))
+                            .unwrap_or_else(|_| panic!("Failed to read cover file {:?}", magazine.cover));
+        magazine.front_text = fs::read_to_string(directory.join(&magazine.front))
+                            .unwrap_or_else(|_| panic!("Failed to read front file {:?}", magazine.front));
         magazine
     }
 
@@ -44,7 +49,7 @@ impl Magazine {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Section {
     pub title: String,
     pub author: String,
@@ -80,7 +85,7 @@ impl Section {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Page {
     pub page_number: u32,
     pub sections: String,
