@@ -21,7 +21,9 @@ pub struct Magazine {
 }
 
 impl Magazine {
+    /// Creates a new magazine from a directory path
     pub fn from_directory(directory: &Path) -> Self {
+        // Read the index file to get the magazine's metadata
         let index_file = directory.join("index.json");
         let index_str = fs::read_to_string(&index_file)
             .unwrap_or_else(|_| panic!("Failed to read index file {:?}", index_file));
@@ -29,6 +31,7 @@ impl Magazine {
         let mut magazine: Magazine =
             serde_json::from_str(&index_str).expect("Failed to parse index file");
 
+        // Read and parse the pages for each section in the magazine
         magazine.sections = magazine
             .sections
             .into_iter()
@@ -44,30 +47,38 @@ impl Magazine {
                 }
             })
             .collect();
-        
-        magazine.cover_text = fs::read_to_string(directory.join(&magazine.cover))
-                            .unwrap_or_else(|_| panic!("Failed to read cover file {:?}", magazine.cover));
-        magazine.front_text = fs::read_to_string(directory.join(&magazine.front))
-                            .unwrap_or_else(|_| panic!("Failed to read front file {:?}", magazine.front));
-        
+
+        // Read and render the cover and front pages of the magazine
+        magazine.cover_text = read_and_render_page(&directory, &magazine.cover);
+        magazine.front_text = read_and_render_page(&directory, &magazine.front);
+
+        // Render the front page with the magazine metadata and sections
         let mut engine = Handlebars::new();
         engine.register_template_string("front_text", magazine.front_text.as_str())
                             .unwrap_or_else(|_| panic!("Failed to register front page"));
-        let mut context = json!({
+        let context = json!({
             "title": magazine.title.as_str(),
             "sections": magazine.sections,
             "vars": magazine.vars
         });
-        println!("{:?}", context);
 
         magazine.front_text = engine.render("front_text", &context)
-                            .unwrap_or_else(|_| panic!("Failed to register front page"));   
+                            .unwrap_or_else(|_| panic!("Failed to render front page"));   
         magazine
     }
 
+    /// Returns a vector containing references to all the sections in the magazine
     pub fn all_sections(&self) -> Vec<&Section> {
         self.sections.iter().collect()
     }
+}
+
+
+/// Reads and renders a page file located in the specified directory
+fn read_and_render_page(directory: &Path, page_filename: &str) -> String {
+    let page_path = directory.join(page_filename);
+    fs::read_to_string(&page_path)
+        .unwrap_or_else(|_| panic!("Failed to read page file {:?}", page_path))
 }
 
 
@@ -83,13 +94,15 @@ pub struct Section {
 }
 
 impl Section {
+    // Get all pages in the section
     pub fn all_pages(&self) -> Vec<&Page> {
         self.pages.iter().collect()
     }
 
+    // Get all pages for a given directory
     fn pages_for_directory(&self, directory: &Path) -> Vec<Page> {
         let mut pages: Vec<Page> = fs::read_dir(directory)
-            .unwrap_or_else(|_| panic!("Failed to read directory {:?}", directory))
+            .unwrap_or_else(|err| panic!("Failed to read directory {:?}: {}", directory, err))
             .filter_map(|entry| {
                 let entry = entry.expect("Failed to read directory entry");
                 if entry.path().is_file() {
@@ -103,16 +116,16 @@ impl Section {
                             let mut page_unwrapped = page.unwrap();
                             let mut engine = Handlebars::new();
                             engine.register_template_string("page_content", page_unwrapped.text.as_str())
-                                                .unwrap_or_else(|_| panic!("Failed to register page"));
+                                                .unwrap_or_else(|err| panic!("Failed to register page: {}", err));
                             let mut context = json!({
                                 "title": self.title.as_str(),
                                 "author": self.author.as_str(),
                                 "vars": self.vars
                             });
-                            println!("{:?}", context);
+                            println!("Rendering page {} with context: {:?}", page_unwrapped.page_number, context);
                     
                             page_unwrapped.text = engine.render("page_content", &context)
-                                                .unwrap_or_else(|_| panic!("Failed to register front page"));
+                                                .unwrap_or_else(|err| panic!("Failed to render page: {}", err));
                             return Some(page_unwrapped);
                         }
                     return page;
@@ -133,9 +146,10 @@ pub struct Page {
 }
 
 impl Page {
+    // Create a new page from a file
     fn from_file(page_number: u32, filename: &Path) -> Self {
         let sections = fs::read_to_string(filename)
-            .unwrap_or_else(|_| panic!("Failed to read Page file {:?}", filename));
+            .unwrap_or_else(|err| panic!("Failed to read Page file {:?}: {}", filename, err));
         Self {
             page_number,
             text: sections,
