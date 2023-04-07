@@ -1,1 +1,6 @@
-hi welcome to telzine example issue 1
+Welcome to {{title}}~
+{{#each sections}}
+    {{author}} - {{title}}
+{{/each}}
+
+Released - {{vars.release-date}}

@@ -1,6 +1,10 @@
 {
+    "title": "Telzine Issue #1",
     "cover": "cover.txt",
     "front": "front.txt",
+    "vars": {
+        "release-date": "2023"
+    },
     "sections": [
         {
             "title": "Example 1",
