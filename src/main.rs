@@ -1,6 +1,7 @@
 mod telnet;
 mod zine;
 mod zine_handler;
+mod helpers;
 use std::{io::Result, path::Path};
 
 use crate::{

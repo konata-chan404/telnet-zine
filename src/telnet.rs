@@ -57,6 +57,11 @@ impl<H: TelnetHandler + Send + Sync> TelnetSession<H> {
                 Ok(n) => {
                     let input = String::from_utf8_lossy(&buffer[..n]).trim().to_string();
                     let output = self.handler.handle(&input);
+                    if output == self.handler.quit() {
+                        self.stream.write_all(self.handler.on_quit().as_bytes());
+                        self.stream.shutdown();
+                        return Ok(());
+                    }
                     self.stream.write_all(output.as_bytes()).await?;
                 }
                 Err(ref e) if e.kind() == WouldBlock => continue, // Non-blocking error, continue looping
@@ -72,6 +77,15 @@ pub trait TelnetHandler: Send + Sync + 'static {
 
     fn on_connect(&mut self) -> String {
         "".to_string()
+    }
+
+    fn on_quit(&mut self) -> String {
+        "".to_string()
+    }
+
+    fn quit(&self) -> String {
+        let quit = [255, 253, 18];
+        String::from_utf8_lossy(&quit).to_string()
     }
 }
 

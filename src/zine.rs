@@ -1,11 +1,13 @@
+use crossterm::style::{StyledContent, Stylize};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs::{self};
 use std::path::{Path};
-use std::task::Context;
 use std::collections::HashMap;
-use handlebars::{Handlebars, TemplateError};
-
+use handlebars::{Handlebars, HelperDef, RenderContext, Helper, Context, JsonRender, HelperResult, Output, RenderError};
+use crossterm::{style::{Color, SetForegroundColor, ResetColor}, execute};
+use std::fmt;
+use crate::helpers::{color_helper, italic_helper, bold_helper, underline_helper};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Magazine {
     pub title: String,
@@ -61,6 +63,10 @@ impl Magazine {
             "sections": magazine.sections,
             "vars": magazine.vars
         });
+        engine.register_helper("color", Box::new(color_helper));
+        engine.register_helper("italic", Box::new(italic_helper));
+        engine.register_helper("bold", Box::new(bold_helper));
+        engine.register_helper("underline", Box::new(underline_helper));
 
         magazine.front_text = engine.render("front_text", &context)
                             .unwrap_or_else(|_| panic!("Failed to render front page"));   
@@ -70,6 +76,10 @@ impl Magazine {
     /// Returns a vector containing references to all the sections in the magazine
     pub fn all_sections(&self) -> Vec<&Section> {
         self.sections.iter().collect()
+    }
+
+    pub fn get_section(&self, index: usize) -> Option<&Section> {
+        self.sections.get(index)
     }
 }
 
@@ -99,6 +109,10 @@ impl Section {
         self.pages.iter().collect()
     }
 
+    pub fn get_page(&self, index: usize) -> Option<&Page> {
+        self.pages.get(index)
+    }
+
     // Get all pages for a given directory
     fn pages_for_directory(&self, directory: &Path) -> Vec<Page> {
         let mut pages: Vec<Page> = fs::read_dir(directory)
@@ -117,6 +131,10 @@ impl Section {
                             let mut engine = Handlebars::new();
                             engine.register_template_string("page_content", page_unwrapped.text.as_str())
                                                 .unwrap_or_else(|err| panic!("Failed to register page: {}", err));
+                            engine.register_helper("color", Box::new(color_helper));
+                            engine.register_helper("italic", Box::new(italic_helper));
+                            engine.register_helper("bold", Box::new(bold_helper));
+                            engine.register_helper("underline", Box::new(underline_helper));
                             let mut context = json!({
                                 "title": self.title.as_str(),
                                 "author": self.author.as_str(),
@@ -154,5 +172,11 @@ impl Page {
             page_number,
             text: sections,
         }
+    }
+}
+
+impl fmt::Display for Page {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.text)
     }
 }
