@@ -1,4 +1,4 @@
-Welcome to {{title}}~
+Welcome to {{rainbow title}}~
 {{#each sections}}
     {{author}} - {{title}}
 {{/each}}

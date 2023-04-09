@@ -1,6 +1,7 @@
 use std::io::Result;
 use std::io::ErrorKind::WouldBlock;
-
+use std::net::SocketAddr;
+use chrono::prelude::*;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -20,14 +21,15 @@ impl<H: TelnetHandler + Send + Sync + 'static + Clone> TelnetServer<H> {
 
     // Define the async method that runs the server and spawns a new task for each incoming connection
     pub async fn run(self) -> Result<()> {
-        println!("Listening on: {}", self.listener.local_addr()?);
+        println!("[{}] Listening on: {}", Local::now().format("%Y-%m-%d %H:%M:%S").to_string(), self.listener.local_addr()?);
 
         loop {
-            let (stream, _) = self.listener.accept().await?;
+            let (stream, _addr) = self.listener.accept().await?;
             let handler = self.handler.clone();
+
             tokio::spawn(async move {
-                if let Err(e) = TelnetSession::new(stream, handler).await.run().await {
-                    eprintln!("Error handling connection: {}", e);
+                if let Err(e) = TelnetSession::new(stream, handler).await.unwrap().run().await {
+                    eprintln!("[{}] Error handling connection: {}", Local::now().format("%Y-%m-%d %H:%M:%S").to_string(), e);
                 }
             });
         }
@@ -38,28 +40,35 @@ impl<H: TelnetHandler + Send + Sync + 'static + Clone> TelnetServer<H> {
 struct TelnetSession<H: TelnetHandler> {
     stream: TcpStream,
     handler: H,
+    addr: SocketAddr,
 }
 
 // Implement the TelnetSession struct with generic parameters and methods
 impl<H: TelnetHandler + Send + Sync> TelnetSession<H> {
     // Define the constructor that creates a new TelnetSession instance from a TcpStream and a TelnetHandler
-    async fn new(stream: TcpStream, handler: H) -> Self {
-        TelnetSession { stream, handler }
+    pub async fn new(stream: TcpStream, handler: H) -> Result<Self> {
+        let addr = stream.peer_addr()?;
+        Ok(TelnetSession { stream, handler, addr })
     }
 
     // Define the async method that runs the TelnetSession and handles incoming messages
-    async fn run(mut self) -> Result<()> {
+    pub async fn run(mut self) -> Result<()> {
+        println!("[{}] Got connection from {}", Local::now().format("%Y-%m-%d %H:%M:%S").to_string(), self.addr);
+
         self.stream.write_all(self.handler.on_connect().as_bytes()).await?;
         loop {
             let mut buffer = [0u8; 1024];
             match self.stream.read(&mut buffer).await {
-                Ok(0) => return Ok(()), // Connection closed by client
+                Ok(0) => {
+                    return Ok(()) // Connection closed by client
+                },
                 Ok(n) => {
                     let input = String::from_utf8_lossy(&buffer[..n]).trim().to_string();
                     let output = self.handler.handle(&input);
                     if output == self.handler.quit() {
                         self.stream.write_all(self.handler.on_quit().as_bytes());
                         self.stream.shutdown();
+                        println!("[{}] Disconnection from {}", Local::now().format("%Y-%m-%d %H:%M:%S").to_string(), self.addr);
                         return Ok(());
                     }
                     self.stream.write_all(output.as_bytes()).await?;
@@ -70,7 +79,6 @@ impl<H: TelnetHandler + Send + Sync> TelnetSession<H> {
         }
     }
 }
-
 // Define the TelnetHandler trait that represents the Telnet protocol message handler
 pub trait TelnetHandler: Send + Sync + 'static {
     fn handle(&mut self, input: &str) -> String;
@@ -89,19 +97,19 @@ pub trait TelnetHandler: Send + Sync + 'static {
     }
 }
 
-// Define a simple EchoHandler struct that implements the TelnetHandler trait
-#[derive(Copy, Clone, Debug)]
-pub(crate) struct EchoHandler;
+// // Define a simple EchoHandler struct that implements the TelnetHandler trait
+// #[derive(Copy, Clone, Debug)]
+// pub(crate) struct EchoHandler;
 
-impl EchoHandler {
-    pub fn new() -> Self {
-        EchoHandler {}
-    }
-}
+// impl EchoHandler {
+//     pub fn new() -> Self {
+//         EchoHandler {}
+//     }
+// }
 
-impl TelnetHandler for EchoHandler {
-    // Implement the TelnetHandler trait's handle method for the EchoHandler
-    fn handle(&mut self, input: &str) -> String {
-        input.to_string() + "\r\n"
-    }
-}
+// impl TelnetHandler for EchoHandler {
+//     // Implement the TelnetHandler trait's handle method for the EchoHandler
+//     fn handle(&mut self, input: &str) -> String {
+//         input.to_string() + "\r\n"
+//     }
+// }

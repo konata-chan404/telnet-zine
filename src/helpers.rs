@@ -1,7 +1,5 @@
-use std::fmt::format;
-
-use handlebars::{Handlebars, HelperDef, RenderContext, Helper, Context, JsonRender, HelperResult, Output, RenderError};
-use crossterm::{style::{Color, SetForegroundColor, ResetColor, Stylize}, execute};
+use handlebars::{Handlebars, Helper, HelperResult, Context, RenderContext, Output, RenderError};
+use crossterm::style::{Color, Stylize};
 
 pub fn color_helper(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult {
     // Get the color and text parameters from the helper
@@ -112,4 +110,40 @@ pub fn underline_helper(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderC
     out.write(&colored_text)?;
 
     Ok(())
+}
+
+pub fn rainbow_helper(
+    h: &Helper,
+    _: &Handlebars,
+    _: &Context,
+    _: &mut RenderContext,
+    out: &mut dyn Output,
+) -> HelperResult {
+    let text_param = h.param(0).ok_or(RenderError::new("Missing text parameter"))?;
+    let text = text_param.value().as_str().ok_or(RenderError::new("Invalid text parameter"))?;
+
+    let freq = h.param(1).and_then(|v| v.value().as_f64());
+    let spread = h.param(2).and_then(|v| v.value().as_u64()).map(|u| u as usize);
+
+    let mut colored_text = String::new();
+    for (i, c) in text.chars().enumerate() {
+        let color = lol::rainbow(freq, spread, i);
+        colored_text.push_str(&format!("{}", c.to_string().with(color)));
+    }
+
+    out.write(&colored_text)?;
+    Ok(())
+}
+
+mod lol {
+    use crossterm::style::Color;
+
+    pub fn rainbow(freq: Option<f64>, spread: Option<usize>, i: usize) -> Color {
+        let freq = freq.unwrap_or(0.2);
+        let _spread = spread.unwrap_or(1);
+        let red = (freq * i as f64 + 0.0).sin() * 127.0 + 128.0;
+        let green = (freq * i as f64 + 2.0 * std::f64::consts::PI / 3.0).sin() * 127.0 + 128.0;
+        let blue = (freq * i as f64 + 4.0 * std::f64::consts::PI / 3.0).sin() * 127.0 + 128.0;
+        Color::Rgb { r: red as u8, g: green as u8, b: blue as u8 }
+    }
 }

@@ -1,13 +1,13 @@
-use crossterm::style::{StyledContent, Stylize};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs::{self};
 use std::path::{Path};
 use std::collections::HashMap;
-use handlebars::{Handlebars, HelperDef, RenderContext, Helper, Context, JsonRender, HelperResult, Output, RenderError};
-use crossterm::{style::{Color, SetForegroundColor, ResetColor}, execute};
+use handlebars::{Handlebars};
 use std::fmt;
-use crate::helpers::{color_helper, italic_helper, bold_helper, underline_helper};
+use chrono::prelude::*;
+use crate::helpers::{color_helper, italic_helper, bold_helper, underline_helper, rainbow_helper};
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Magazine {
     pub title: String,
@@ -58,6 +58,8 @@ impl Magazine {
         let mut engine = Handlebars::new();
         engine.register_template_string("front_text", magazine.front_text.as_str())
                             .unwrap_or_else(|_| panic!("Failed to register front page"));
+        engine.register_template_string("cover_text", magazine.cover_text.as_str())
+                            .unwrap_or_else(|_| panic!("Failed to register cover page"));
         let context = json!({
             "title": magazine.title.as_str(),
             "sections": magazine.sections,
@@ -67,9 +69,12 @@ impl Magazine {
         engine.register_helper("italic", Box::new(italic_helper));
         engine.register_helper("bold", Box::new(bold_helper));
         engine.register_helper("underline", Box::new(underline_helper));
+        engine.register_helper("rainbow", Box::new(rainbow_helper));
 
         magazine.front_text = engine.render("front_text", &context)
-                            .unwrap_or_else(|_| panic!("Failed to render front page"));   
+                            .unwrap_or_else(|_| panic!("Failed to render front page"));
+        magazine.front_text = engine.render("cover_text", &context)
+                            .unwrap_or_else(|_| panic!("Failed to render cover page"));   
         magazine
     }
 
@@ -135,12 +140,14 @@ impl Section {
                             engine.register_helper("italic", Box::new(italic_helper));
                             engine.register_helper("bold", Box::new(bold_helper));
                             engine.register_helper("underline", Box::new(underline_helper));
-                            let mut context = json!({
+                            engine.register_helper("rainbow", Box::new(rainbow_helper));
+                            let context = json!({
                                 "title": self.title.as_str(),
                                 "author": self.author.as_str(),
                                 "vars": self.vars
                             });
-                            println!("Rendering page {} with context: {:?}", page_unwrapped.page_number, context);
+                            println!("[{}] Rendering page {} with context: {:?}", Local::now().format("%Y-%m-%d %H:%M:%S").to_string(), 
+                                                                            page_unwrapped.page_number, context);
                     
                             page_unwrapped.text = engine.render("page_content", &context)
                                                 .unwrap_or_else(|err| panic!("Failed to render page: {}", err));

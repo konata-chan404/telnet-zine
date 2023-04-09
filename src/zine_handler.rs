@@ -4,15 +4,11 @@ use crossterm::{
     style::{style, Stylize},
     terminal::{Clear, ClearType},
 };
-use std::io::Result;
 
 #[derive(Clone, Debug)]
 enum ZineState {
     Front,
-    Reading {
-        section: usize,
-        page: usize,
-    },
+    Reading { section: usize, page: usize },
 }
 
 #[derive(Clone, Debug)]
@@ -51,7 +47,11 @@ impl ZineHandler {
                     let styled_output = style(text).on_black();
                     format!("{}{}\r\n", self.clear_screen(), styled_output)
                 } else {
-                    format!("Section {} does not have a page {}\r\n", section + 1, page + 1)
+                    format!(
+                        "Section {} does not have a page {}\r\n",
+                        section + 1,
+                        page + 1
+                    )
                 }
             }
             None => format!("Section {} does not exist\r\n", section + 1),
@@ -93,16 +93,25 @@ impl TelnetHandler for ZineHandler {
                 }
             }
             ZineState::Reading { section, page } => {
-                let section_len = self.magazine.get_section(section).map(|s| s.pages.len()).unwrap_or(0);
-                let next_page = (page + 1);
-                
+                let section_len = self
+                    .magazine
+                    .get_section(section)
+                    .map(|s| s.pages.len())
+                    .unwrap_or(0);
+                let next_page = page + 1;
+
                 if page == section_len || next_page > section_len {
                     self.state = ZineState::Front;
-                    return format!("{}Press ENTER to go back to front page.", self.clear_screen());
-                }
-                else {
-                    self.state = ZineState::Reading { section: section, page: next_page };
-                    return self.display_section_page(section, page)
+                    return format!(
+                        "{}Press ENTER to go back to front page.",
+                        self.clear_screen()
+                    );
+                } else {
+                    self.state = ZineState::Reading {
+                        section: section,
+                        page: next_page,
+                    };
+                    return self.display_section_page(section, page);
                 }
             }
         }
