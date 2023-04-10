@@ -73,7 +73,7 @@ impl Magazine {
 
         magazine.front_text = engine.render("front_text", &context)
                             .unwrap_or_else(|_| panic!("Failed to render front page"));
-        magazine.front_text = engine.render("cover_text", &context)
+        magazine.cover_text = engine.render("cover_text", &context)
                             .unwrap_or_else(|_| panic!("Failed to render cover page"));   
         magazine
     }
