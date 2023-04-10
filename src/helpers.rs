@@ -1,6 +1,22 @@
 use handlebars::{Handlebars, Helper, HelperResult, Context, RenderContext, Output, RenderError};
 use crossterm::style::{Color, Stylize};
 
+pub fn add_helper(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult {
+    // Get the first argument from the template
+    let param1 = h.param(0).ok_or(RenderError::new("Missing parameter"))?.value().as_f64().ok_or(RenderError::new("Invalid parameter type"))?;
+
+    // Get the second argument from the template
+    let param2 = h.param(1).ok_or(RenderError::new("Missing parameter"))?.value().as_f64().ok_or(RenderError::new("Invalid parameter type"))?;
+
+    // Add the two parameters together
+    let result = param1 + param2;
+
+    // Render the result to the template
+    out.write_fmt(format_args!("{}", result))?;
+
+    Ok(())
+}
+
 pub fn color_helper(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult {
     // Get the color and text parameters from the helper
     let fg_color_param = h.param(0).ok_or(RenderError::new("Missing foreground color parameter"))?;

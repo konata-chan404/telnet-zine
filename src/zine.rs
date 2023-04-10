@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use handlebars::{Handlebars};
 use std::fmt;
 use chrono::prelude::*;
-use crate::helpers::{color_helper, italic_helper, bold_helper, underline_helper, rainbow_helper};
+use crate::helpers::{color_helper, italic_helper, bold_helper, underline_helper, rainbow_helper, add_helper};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Magazine {
@@ -70,6 +70,7 @@ impl Magazine {
         engine.register_helper("bold", Box::new(bold_helper));
         engine.register_helper("underline", Box::new(underline_helper));
         engine.register_helper("rainbow", Box::new(rainbow_helper));
+        engine.register_helper("add", Box::new(add_helper));
 
         magazine.front_text = engine.render("front_text", &context)
                             .unwrap_or_else(|_| panic!("Failed to render front page"));
@@ -141,6 +142,8 @@ impl Section {
                             engine.register_helper("bold", Box::new(bold_helper));
                             engine.register_helper("underline", Box::new(underline_helper));
                             engine.register_helper("rainbow", Box::new(rainbow_helper));
+                            engine.register_helper("add", Box::new(add_helper));
+
                             let context = json!({
                                 "title": self.title.as_str(),
                                 "author": self.author.as_str(),

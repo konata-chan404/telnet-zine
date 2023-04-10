@@ -7,12 +7,12 @@
     },
     "sections": [
         {
-            "title": "Example 1",
+            "title": "Floppy Witch",
             "author": "Alice",
             "directory": "example1"
         },
         {
-            "title": "Example 2",
+            "title": "What is Telnet?",
             "author": "Bob",
             "directory": "example2"
         }

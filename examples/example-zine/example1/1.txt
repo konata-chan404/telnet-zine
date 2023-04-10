@@ -1,1 +1,11 @@
-Example 1-1
+The {{color "purple" "floppy witch"}} was tinkering with her Lisp code when she ran into a bug that just wouldn't budge. With a sigh, she turned to her cat for help.
+
+"What do you think, Fluffy?" she asked. The cat simply stared back, unimpressed. "Thanks for the input," the witch muttered sarcastically.
+
+But as she continued to stare at her screen, an idea began to form. With a sly grin, she typed out a solution that was as clever as it was brilliant. The cat watched in confusion as the witch erupted in laughter.
+
+"What did you do?" Fluffy asked.
+
+"I just debugged my code with a pun!" the witch replied, still chuckling.
+
+The cat rolled its eyes and went back to grooming, but the witch was beaming with {{rainbow "pride"}}. For in the world of programming, sometimes the best way to solve a problem is with a bit of silly wordplay.

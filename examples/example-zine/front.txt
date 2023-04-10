@@ -1,6 +1,27 @@
-Welcome to {{rainbow title}}~
-{{#each sections}}
-    {{author}} - {{title}}
+              .
+               					
+              |					
+     .               /				
+      \       I     				
+                  /
+        \  ,g88R_
+          d888(`  ).                   _
+ -  --==  888(     ).=--           .+(`  )`.
+)         Y8P(       '`.          :(   .    )
+        .+(`(      .   )     .--  `.  (    ) )
+       ((    (..__.:'-'   .=(   )   ` _`  ) )
+`.     `(       ) )       (   .  )     (   )  ._
+  )      ` __.:'   )     (   (   ))     `-'.:(`  )
+)  )  ( )       --'       `- __.'         :(      ))
+.-'  (_.'          .')                    `(    )  ))
+                  (_  )                     ` __.:'
+                                        	
+--..,___.--,--'`,---..-.--+--.,,-,,..._.--..-._.-a:f--.
+
+
+        Welcome to {{rainbow title}}~
+        {{#each sections}}
+            {{add @index 1}}> {{author}} - {{title}}
 {{/each}}
 
-Released - {{vars.release-date}}
+            0> Cover Art
