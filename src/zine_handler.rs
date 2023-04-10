@@ -78,6 +78,9 @@ impl TelnetHandler for ZineHandler {
                 // If the zine is on the front page and the input is a valid section index,
                 // start reading that section from the first page
                 if let Ok(index) = input.trim().parse::<usize>() {
+                    if index == 0 {
+                        return self.on_connect();
+                    }
                     if index > 0 && index <= self.magazine.sections.len() {
                         self.state = ZineState::Reading {
                             section: index - 1,
