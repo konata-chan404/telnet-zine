@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(StructOpt)]
-#[structopt(name = "telnet-zine")]
+#[structopt(name = "telzine")]
 struct Opt {
     #[structopt(short = "p", long = "port", default_value = "8080")]
     port: String,
