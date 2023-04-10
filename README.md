@@ -4,7 +4,7 @@ Telzine is a Telnet server that serves ezines (electronic magazines) written in 
 
 It uses ANSI features that might not be ideal for some terminal emulators.
 ![telzine in action](https://cdn.discordapp.com/attachments/792357670920519692/1094844040173854811/16811015575885413.gif)
-
+Inspired by [Cara's Dial-A-Zine](https://github.com/caraesten/dial_a_zine)
 ## Features
 
 - Serves ezines over Telnet protocol for that retro underground feel
